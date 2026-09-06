@@ -22,7 +22,6 @@ jobs:
             }
           }
 
-          # Search for common entrypoints across SPA and TanStack structures
           $entryCandidates = @(
             "src/main.tsx", "src/index.tsx", "src/App.tsx",
             "src/entry-client.tsx", "app/entry-client.tsx",
@@ -34,7 +33,6 @@ jobs:
             if (Test-Path $cand) { $entry = $cand; break }
           }
 
-          # Fallback: grab any tsx/jsx file in src or app that isn't vite-env
           if (-not $entry) {
             $fallback = Get-ChildItem -Path @("src", "app", ".") -Include "*.tsx", "*.jsx" -Recurse | 
               Where-Object { $_.Name -notlike "*vite-env*" -and $_.FullName -notlike "*node_modules*" } | 
@@ -68,6 +66,7 @@ jobs:
       - name: Build Electron Executable
         run: |
           npm install --legacy-peer-deps
+          npm install @tanstack/react-query @tanstack/react-router @tanstack/react-router-dom lucide-react clsx tailwind-merge --legacy-peer-deps
           npm run dist
 
       - name: Upload Finished EXE
