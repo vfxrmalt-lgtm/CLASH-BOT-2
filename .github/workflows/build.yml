@@ -13,13 +13,6 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Flatten Directory
-        shell: cmd
-        run: |
-          if exist project (
-            xcopy /E /Y /H project\* .
-          )
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -34,9 +27,11 @@ jobs:
         run: |
           pip install pyinstaller fastapi uvicorn pydantic
           pyinstaller --noconsole --onefile --name "bot-engine" server.py
-          copy dist\bot-engine.exe .
+          copy dist\bot-engine.exe project\bot-engine.exe
+          copy main.js project\main.js
 
       - name: Build Electron Executable
+        working-directory: ./project
         run: |
           npm install --legacy-peer-deps
           npm run dist
@@ -45,4 +40,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: HarvestBot-App
-          path: release/*.exe
+          path: project/release/*.exe
