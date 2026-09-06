@@ -21,13 +21,33 @@ jobs:
               Copy-Item -Path $_.FullName -Destination "." -Recurse -Force
             }
           }
-          if (-not (Test-Path "index.html")) {
-            $entry = "src/main.tsx"
-            if (Test-Path "src/index.tsx") { $entry = "src/index.tsx" }
-            if (Test-Path "src/App.tsx") { $entry = "src/App.tsx" }
-            $html = "<!DOCTYPE html><html lang='en'><head><meta charset='UTF-8'/><meta name='viewport' content='width=device-width, initial-scale=1.0'/><title>HarvestBot</title></head><body class='bg-background text-foreground'><div id='root'></div><script type='module' src='/$entry'></script></body></html>"
-            Set-Content -Path "index.html" -Value $html -Encoding utf8
+
+          # Search for common entrypoints across SPA and TanStack structures
+          $entryCandidates = @(
+            "src/main.tsx", "src/index.tsx", "src/App.tsx",
+            "src/entry-client.tsx", "app/entry-client.tsx",
+            "src/routes/__root.tsx", "app/routes/__root.tsx",
+            "src/root.tsx", "app/root.tsx"
+          )
+          $entry = ""
+          foreach ($cand in $entryCandidates) {
+            if (Test-Path $cand) { $entry = $cand; break }
           }
+
+          # Fallback: grab any tsx/jsx file in src or app that isn't vite-env
+          if (-not $entry) {
+            $fallback = Get-ChildItem -Path @("src", "app", ".") -Include "*.tsx", "*.jsx" -Recurse | 
+              Where-Object { $_.Name -notlike "*vite-env*" -and $_.FullName -notlike "*node_modules*" } | 
+              Select-Object -First 1
+            if ($fallback) {
+              $entry = [System.IO.Path]::GetRelativePath((Get-Location).Path, $fallback.FullName).Replace("\", "/")
+            }
+          }
+
+          Write-Host "Resolved React Entry: $entry"
+
+          $html = "<!DOCTYPE html><html lang='en'><head><meta charset='UTF-8'/><meta name='viewport' content='width=device-width, initial-scale=1.0'/><title>HarvestBot</title></head><body class='bg-background text-foreground'><div id='root'></div><script type='module' src='/$entry'></script></body></html>"
+          Set-Content -Path "index.html" -Value $html -Encoding utf8
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
