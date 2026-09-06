@@ -1,0 +1,41 @@
+name: Build Portable EXE
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Compile Python Engine
+        run: |
+          pip install pyinstaller fastapi uvicorn pydantic
+          pyinstaller --noconsole --onefile --name "bot-engine" server.py
+          copy dist\bot-engine.exe .
+
+      - name: Build Electron Executable
+        run: |
+          npm install
+          npm run dist
+
+      - name: Upload Finished EXE
+        uses: actions/upload-artifact@v4
+        with:
+          name: HarvestBot-App
+          path: release/*.exe
