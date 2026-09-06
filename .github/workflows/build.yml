@@ -13,12 +13,12 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Organize Folder Structure
-        shell: pwsh
+      - name: Flatten Directory
+        shell: cmd
         run: |
-          if (Test-Path "project") {
-            Copy-Item -Path "project/*" -Destination "." -Recurse -Force
-          }
+          if exist project (
+            xcopy /E /Y /H project\* .
+          )
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -38,7 +38,7 @@ jobs:
 
       - name: Build Electron Executable
         run: |
-          npm install @vitejs/plugin-react --legacy-peer-deps
+          npm install --legacy-peer-deps
           npm run dist
 
       - name: Upload Finished EXE
