@@ -16,18 +16,17 @@ jobs:
       - name: Locate and Unify Files
         shell: pwsh
         run: |
-          # Copy project contents into root if project directory exists
           if (Test-Path "project") {
             Get-ChildItem -Path "project" | ForEach-Object {
               Copy-Item -Path $_.FullName -Destination "." -Recurse -Force
             }
           }
-          # Ensure index.html is in the root directory
           if (-not (Test-Path "index.html")) {
-            $foundHtml = Get-ChildItem -Filter "index.html" -Recurse | Select-Object -First 1
-            if ($foundHtml) {
-              Copy-Item $foundHtml.FullName -Destination "index.html" -Force
-            }
+            $entry = "src/main.tsx"
+            if (Test-Path "src/index.tsx") { $entry = "src/index.tsx" }
+            if (Test-Path "src/App.tsx") { $entry = "src/App.tsx" }
+            $html = "<!DOCTYPE html><html lang='en'><head><meta charset='UTF-8'/><meta name='viewport' content='width=device-width, initial-scale=1.0'/><title>HarvestBot</title></head><body class='bg-background text-foreground'><div id='root'></div><script type='module' src='/$entry'></script></body></html>"
+            Set-Content -Path "index.html" -Value $html -Encoding utf8
           }
 
       - name: Setup Node.js
