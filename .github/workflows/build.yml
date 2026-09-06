@@ -38,7 +38,7 @@ jobs:
 
       - name: Build Electron Executable
         run: |
-          npm install --legacy-peer-deps
+          npm install @vitejs/plugin-react --legacy-peer-deps
           npm run dist
 
       - name: Upload Finished EXE
