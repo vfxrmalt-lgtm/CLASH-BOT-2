@@ -13,6 +13,13 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Organize Folder Structure
+        shell: pwsh
+        run: |
+          if (Test-Path "project") {
+            Copy-Item -Path "project/*" -Destination "." -Recurse -Force
+          }
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
