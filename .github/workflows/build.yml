@@ -38,7 +38,7 @@ jobs:
 
       - name: Build Electron Executable
         run: |
-          npm install
+          npm install --legacy-peer-deps
           npm run dist
 
       - name: Upload Finished EXE
