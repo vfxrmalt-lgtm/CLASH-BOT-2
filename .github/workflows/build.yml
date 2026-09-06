@@ -13,6 +13,23 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Locate and Unify Files
+        shell: pwsh
+        run: |
+          # Copy project contents into root if project directory exists
+          if (Test-Path "project") {
+            Get-ChildItem -Path "project" | ForEach-Object {
+              Copy-Item -Path $_.FullName -Destination "." -Recurse -Force
+            }
+          }
+          # Ensure index.html is in the root directory
+          if (-not (Test-Path "index.html")) {
+            $foundHtml = Get-ChildItem -Filter "index.html" -Recurse | Select-Object -First 1
+            if ($foundHtml) {
+              Copy-Item $foundHtml.FullName -Destination "index.html" -Force
+            }
+          }
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -27,11 +44,9 @@ jobs:
         run: |
           pip install pyinstaller fastapi uvicorn pydantic
           pyinstaller --noconsole --onefile --name "bot-engine" server.py
-          copy dist\bot-engine.exe project\bot-engine.exe
-          copy main.js project\main.js
+          copy dist\bot-engine.exe bot-engine.exe
 
       - name: Build Electron Executable
-        working-directory: ./project
         run: |
           npm install --legacy-peer-deps
           npm run dist
@@ -40,4 +55,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: HarvestBot-App
-          path: project/release/*.exe
+          path: release/*.exe
